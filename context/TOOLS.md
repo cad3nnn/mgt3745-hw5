@@ -1,24 +1,13 @@
-# TOOLS.md
+---
+status: active
+purpose: External-service trust-boundary ledger
+---
 
-The ledger of Trust Boundary crossings. One row per external service this
-repository depends on. Read by the agent on every task, so keep it short: a
-service not in use does not belong here.
-
-Never put a credential in this file. A key, token, or password anywhere in
-the repository is graded as a security failure regardless of the rest.
-
-Each crossing statement answers three questions in one first-person sentence:
-what crosses, to whom, and who is accountable.
+# Tools
 
 | Service | Trusted with | Credentials live | Crossing statement | Switching cost |
 |---|---|---|---|---|
-| Cloudflare Workers + D1 | Every entry a user types; request metadata (IP, timestamp) that Cloudflare logs by default | Cloudflare dashboard login; wrangler token inside the Codespace | "User entries leave the browser and are stored on D1 under Cloudflare's free-tier terms, in a region I did not choose. I am accountable." | Medium: `wrangler d1 export`, rewrite one Worker for another host |
-| GitHub + Codespaces | Source, commit history, devcontainer | GitHub account (SSO) | *write yours* | *Low / Medium / High, plus the one action required to leave* |
-| GitHub Copilot | Everything in the repository, as context for suggestions | GitHub account | *write yours* | |
-| wrangler (npm) | *what does an npm package receive?* | *none, but it holds the login token above* | *write yours; the event-stream debate applies here* | |
-
-## Revisit triggers
-
-- A new service is added to the repository.
-- A vendor changes pricing, terms, or region.
-- A credential moves.
+| Cloudflare Workers and D1 — hosts the Worker and stores task entries | Task names, types, dates, statuses, serialized task JSON, request metadata, and service logs Cloudflare collects | No credential is stored in this repository; the D1 database is attached through the `DB` binding in `wrangler.toml` | I send comic-production task data from the browser to Cloudflare through my Worker, and I am accountable for minimizing that data, configuring the service, and explaining the crossing. | Medium — replace the Worker endpoints and migrate the D1 entries to another database provider |
+| GitHub and GitHub Codespaces — hosts source code and provides the development environment | Repository code, documentation, commit history, issues if used, and Codespace development activity | GitHub authentication is managed by GitHub and Codespaces; no GitHub credential is stored in this repository | I send the project source and repository history to GitHub, and I am accountable for not committing secrets or sensitive user data. | Medium — move the repository and development workflow to another Git provider and environment |
+| GitHub Copilot — code-completion assistant used during development | Prompts, nearby editor context, and code context supplied through the enabled Copilot integration | Managed by the authenticated GitHub account; no token is stored in this repository | I may send code context and prompts to GitHub Copilot, and I am accountable for reviewing suggestions, rejecting unsafe SQL, and verifying code before using it. | Low — disable Copilot and continue writing or reviewing code manually |
+| Wrangler — npm command-line tool for Cloudflare development and deployment | Project configuration, Worker code submitted for deployment, command output, and Cloudflare account context during authenticated use | Cloudflare authentication is managed outside the repository by Wrangler or the Cloudflare login flow | I use Wrangler to send Worker configuration and deployment artifacts to Cloudflare, and I am accountable for checking commands and keeping credentials out of the repository. | Low — use another Cloudflare deployment method or replace the deployment tool |
